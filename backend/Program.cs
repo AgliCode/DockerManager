@@ -5,6 +5,9 @@ using backend.Models;
 using Dapper;
 using Microsoft.Data.Sqlite;
 using System.Text.Json;
+using backend.Services;
+using backend.Hubs;
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<DatabaseInitializer>();
 
@@ -16,7 +19,8 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins("http://localhost:5173")
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -30,6 +34,14 @@ builder.Services.AddSingleton<IDockerClient>(_ =>
     return new DockerClientConfiguration(dockerUri).CreateClient();
 });
 
+//Rejestracja serwisu do nasłuchiwania zmian na żywo
+builder.Services.AddSingleton<ContainerMonitorService>();
+
+builder.Services.AddHostedService(sp =>
+    sp.GetRequiredService<ContainerMonitorService>());
+
+builder.Services.AddSignalR();
+
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
@@ -39,7 +51,7 @@ using (var scope = app.Services.CreateScope())
     await databaseInitializer.InitializeAsync();
 }
 app.UseCors();
-
+app.MapHub<ContainerHub>("/containerHub");
 app.MapGet("/api/containers", async (IDockerClient dockerClient) =>
 {
     try
@@ -208,6 +220,7 @@ app.MapGet("/api/history", async (IConfiguration configuration) =>
             statusCode: 500);
     }
 });
+
 
 app.Run();
 
