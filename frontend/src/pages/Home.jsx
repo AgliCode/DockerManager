@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import '../App.css'
 import { HubConnectionBuilder } from '@microsoft/signalr';
+import { openLogWindow } from '../utils/logWindows.js';
 
 function Home() {
   const [containers, setContainers] = useState([]);
@@ -11,6 +12,7 @@ function Home() {
   const [isLoadingLogs, setIsLoadingLogs] = useState(false);
   const [logsError, setLogsError] = useState('');
 
+  const[openLogsInWindows, setOpenLogsInWindows] = useState(false);
   useEffect(() => {
     const connection = new HubConnectionBuilder()
         .withUrl('http://localhost:5241/containerHub')
@@ -57,7 +59,8 @@ function Home() {
           throw new Error('Nie udało się pobrać kontenerów')
         }
 
-        const data = await response.json()
+        const data = await response.json();
+        console.log('containerLogs:', JSON.stringify(data.containerLogs));
         setContainers(data)
       } catch (error) {
         console.error('Błąd pobierania kontenerów:', error)
@@ -83,13 +86,31 @@ function Home() {
     async function showLogs() {
       if (selectedContainerIds.length === 0) {
         return;
-    }
+      }
 
-    setIsLoadingLogs(true);
-    setLogsText('');
-    setLogsError('');
+      setIsLoadingLogs(true);
+      setLogsText('');
+      setLogsError('');
+      const logWindows = [];
+      if (openLogsInWindows) {
+          const selectedContainers = containers.filter(
+              (container) => selectedContainerIds.includes(container.id)
+          );
 
-    try {
+          selectedContainers.forEach((container) => {
+              const logWindow = openLogWindow(
+                  'Pobieranie logów...',
+                  container.names?.join(', ') || container.id
+              );
+
+              logWindows.push({
+                  id: container.id,
+                  window: logWindow
+              });
+          });
+      }
+
+      try {
         const response = await fetch(
             'http://localhost:5241/api/containers/logs',
             {
@@ -110,12 +131,36 @@ function Home() {
         const data = await response.json();
 
         setLogsText(data.logs);
-    } catch (error) {
+   
+        if (openLogsInWindows) {
+          data.containerLogs.forEach((container) => {
+              const logWindow = logWindows.find(
+                  (item) => item.id === container.id
+              )?.window;
+
+              if (!logWindow || logWindow.closed) {
+                  return;
+              }
+
+              logWindow.document.body.replaceChildren();
+
+              const heading = logWindow.document.createElement('h2');
+              heading.textContent = `Logi kontenera: ${container.name}`;
+
+              const output = logWindow.document.createElement('pre');
+              output.textContent = container.logs;
+              output.style.whiteSpace = 'pre-wrap';
+              output.style.overflowWrap = 'anywhere';
+
+              logWindow.document.body.append(heading, output);
+          });
+      }
+      } catch (error) {
         console.error('Błąd pobierania logów:', error);
         setLogsError(error.message);
-    } finally {
+      } finally {
         setIsLoadingLogs(false);
-    }
+      }
     }
 
   return (
@@ -178,7 +223,15 @@ function Home() {
             </>
           ) }
 
-
+      <label className="logs-window-option">
+        <input
+            type="checkbox"
+            className="styled-checkbox"
+            checked={openLogsInWindows}
+            onChange={(e) => setOpenLogsInWindows(e.target.checked)}
+        />
+        Otwórz logi w osobnych oknach
+      </label> <br/>
       <button
         type="button"
         className="btn-primary"

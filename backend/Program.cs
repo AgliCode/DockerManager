@@ -92,6 +92,8 @@ app.MapPost("/api/containers/logs", async (
 
     var result = new System.Text.StringBuilder();
 
+    var containerLogs = new List<object>();
+
     foreach (var id in request.ContainerIds)
     {
         var container = containers.FirstOrDefault(c => c.ID == id);
@@ -99,6 +101,8 @@ app.MapPost("/api/containers/logs", async (
         string name = container != null
             ? string.Join(", ", container.Names).Replace("/", "")
             : id[..Math.Min(id.Length, 12)];
+
+        var singleContainerLogs = new System.Text.StringBuilder();
 
         result.AppendLine($"========== {name} ==========");
         result.AppendLine();
@@ -126,23 +130,34 @@ app.MapPost("/api/containers/logs", async (
                 );
 
             if (!string.IsNullOrWhiteSpace(stdout))
-                result.AppendLine(stdout);
+                singleContainerLogs.AppendLine(stdout);
 
             if (!string.IsNullOrWhiteSpace(stderr))
-                result.AppendLine(stderr);
+                singleContainerLogs.AppendLine(stderr);
 
             if (string.IsNullOrWhiteSpace(stdout) &&
                 string.IsNullOrWhiteSpace(stderr))
             {
-                result.AppendLine("Brak logów do wyświetlenia.");
+                singleContainerLogs.AppendLine("Brak logów do wyświetlenia.");
             }
         }
         catch (Exception ex)
         {
-            result.AppendLine($"Błąd pobierania logów: {ex.Message}");
+            singleContainerLogs.AppendLine(
+               $"Błąd pobierania logów: {ex.Message}"
+            );
         }
+        string logs = singleContainerLogs.ToString();
 
+        result.Append(logs);
         result.AppendLine();
+
+        containerLogs.Add(new
+        {
+            id,
+            name,
+            logs
+        });
     }
     try
     {
@@ -187,7 +202,7 @@ app.MapPost("/api/containers/logs", async (
     {
         Console.WriteLine($"Błąd zapisu historii: {ex.Message}");
     }
-    return Results.Ok(new { logs = result.ToString() });
+    return Results.Ok(new { logs = result.ToString(), containerLogs = containerLogs });
 });
 
 app.MapGet("/api/history", async (IConfiguration configuration) =>
