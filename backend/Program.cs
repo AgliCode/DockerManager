@@ -52,7 +52,9 @@ using (var scope = app.Services.CreateScope())
 }
 app.UseCors();
 app.MapHub<ContainerHub>("/containerHub");
-app.MapGet("/api/containers", async (IDockerClient dockerClient) =>
+app.MapGet("/api/containers", async (
+    IDockerClient dockerClient,
+    ILogger < Program > logger) =>
 {
     try
     {
@@ -66,7 +68,7 @@ app.MapGet("/api/containers", async (IDockerClient dockerClient) =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine(ex.Message);
+        logger.LogError(ex, "Nie udało się pobrać kontenerów z Dockera.");
 
         return Results.Problem(
             title: "Nie udało się pobrać kontenerów z Dockera.",
@@ -76,7 +78,8 @@ app.MapGet("/api/containers", async (IDockerClient dockerClient) =>
 
 app.MapPost("/api/containers/logs", async (
     GetLogsRequest request,
-    IDockerClient dockerClient) =>
+    IDockerClient dockerClient,
+    ILogger<Program> logger) =>
 {
     if (request.ContainerIds == null ||
         request.ContainerIds.Count == 0)
@@ -84,11 +87,26 @@ app.MapPost("/api/containers/logs", async (
         return Results.BadRequest(
             new { error = "Nie wybrano żadnego kontenera." });
     }
-    var containers = await dockerClient.Containers.ListContainersAsync(
-       new ContainersListParameters
-       {
-           All = true
-       });
+    IList<ContainerListResponse> containers;
+    try
+    {
+        containers = await dockerClient.Containers.ListContainersAsync(
+        new ContainersListParameters
+        {
+          All = true
+        });
+
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(
+           ex,
+           "Nie udało się pobrać listy kontenerów z Dockera podczas pobierania logów.");
+
+        return Results.Problem(
+            title: "Nie udało się pobrać listy kontenerów z Dockera.",
+            statusCode: 500);
+    }
 
     var result = new System.Text.StringBuilder();
 
@@ -143,6 +161,12 @@ app.MapPost("/api/containers/logs", async (
         }
         catch (Exception ex)
         {
+            logger.LogError(
+                ex,
+                "Nie udało się pobrać logów kontenera {ContainerId} ({ContainerName})",
+                id,
+                name
+            );
             singleContainerLogs.AppendLine(
                $"Błąd pobierania logów: {ex.Message}"
             );
@@ -200,12 +224,14 @@ app.MapPost("/api/containers/logs", async (
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Błąd zapisu historii: {ex.Message}");
+        logger.LogError(ex, "Nie udało się zapisać historii logów.");
     }
     return Results.Ok(new { logs = result.ToString(), containerLogs = containerLogs });
 });
 
-app.MapGet("/api/history", async (IConfiguration configuration) =>
+app.MapGet("/api/history", async (
+    IConfiguration configuration,
+    ILogger<Program> logger) =>
 {
     try
     {
@@ -228,7 +254,7 @@ app.MapGet("/api/history", async (IConfiguration configuration) =>
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"Błąd pobierania historii: {ex.Message}");
+        logger.LogError(ex, "Nie udało się pobrać historii logów.");
 
         return Results.Problem(
             title: "Nie udało się pobrać historii logów.",

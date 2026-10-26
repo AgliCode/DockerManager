@@ -25,8 +25,7 @@ namespace backend.Services
             await _hubContext.Clients.All.SendAsync("ContainersChanged");
         }
 
-        protected override async Task ExecuteAsync(
-            CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             while (!stoppingToken.IsCancellationRequested)
             {
