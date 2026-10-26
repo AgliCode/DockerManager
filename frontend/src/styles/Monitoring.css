@@ -1,0 +1,378 @@
+
+.monitoring-page {
+    padding: 32px;
+    color: #26352d;
+}
+
+.monitoring-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.monitoring-header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+}
+
+.monitoring-header p {
+    margin: 0;
+    color: #6b756e;
+    line-height: 1.5;
+}
+
+.monitoring-page button {
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.monitoring-page button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.monitoring-add-button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #245c45;
+    color: white;
+    font-weight: 600 !important;
+    white-space: nowrap;
+}
+
+.monitoring-add-button:hover:not(:disabled) {
+    background: #194832;
+}
+
+.monitoring-form {
+    margin-bottom: 32px;
+    padding: 28px;
+    border: 1px solid #dce4dd;
+    border-radius: 12px;
+    background: #fff;
+}
+
+.monitoring-form h2,
+.monitoring-list h2 {
+    margin: 0 0 24px;
+    font-size: 22px;
+}
+
+.monitoring-form h3 {
+    margin: 0;
+    font-size: 17px;
+}
+
+.monitoring-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.monitoring-field > label {
+    color: #34473b;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.monitoring-field input,
+.monitoring-field select {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #d4ddd6;
+    border-radius: 7px;
+    background: #fff;
+    color: #26352d;
+    font: inherit;
+    font-size: 14px;
+}
+
+.monitoring-field input:focus,
+.monitoring-field select:focus {
+    outline: 2px solid #9bbdaa;
+    outline-offset: 1px;
+    border-color: #245c45;
+}
+
+.monitoring-form > .monitoring-field {
+    margin-bottom: 22px;
+}
+
+.monitoring-keywords,
+.monitoring-notifications {
+    margin-top: 28px;
+}
+
+.monitoring-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.monitoring-secondary-button,
+.monitoring-cancel-button {
+    padding: 9px 13px;
+    border: 1px solid #d4ddd6;
+    border-radius: 7px;
+    background: #fff;
+    color: #34473b;
+}
+
+.monitoring-secondary-button:hover,
+.monitoring-cancel-button:hover {
+    background: #f3f6f3;
+}
+
+.monitoring-keyword {
+    margin-bottom: 14px;
+    padding: 18px;
+    border: 1px solid #e0e7e1;
+    border-radius: 9px;
+    background: #fafcfb;
+}
+
+.monitoring-keyword-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+    color: #526257;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.monitoring-keyword-fields {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 16px;
+}
+
+.monitoring-remove-button {
+    padding: 5px 8px;
+    border: none;
+    border-radius: 5px;
+    background: transparent;
+    color: #a33c37;
+}
+
+.monitoring-remove-button:hover {
+    background: #fff0ef;
+}
+
+.monitoring-hint {
+    margin: 12px 0 0;
+    color: #718076;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.monitoring-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    color: #34473b;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.monitoring-checkbox input {
+    width: 16px;
+    height: 16px;
+    accent-color: #245c45;
+}
+
+.monitoring-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 22px;
+    border-top: 1px solid #e5ebe6;
+}
+
+.monitoring-list {
+    margin-top: 12px;
+}
+
+.monitoring-empty {
+    padding: 32px 20px;
+    border: 1px dashed #d4ddd6;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.monitoring-empty p {
+    margin: 0 0 8px;
+    font-weight: 600;
+}
+
+.monitoring-empty span {
+    color: #718076;
+    font-size: 14px;
+}
+
+.monitoring-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+}
+
+.monitoring-card {
+    padding: 22px;
+    border: 1px solid #dce4dd;
+    border-radius: 11px;
+    background: #fff;
+}
+
+.monitoring-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.monitoring-card-header h3 {
+    margin: 0 0 6px;
+    font-size: 17px;
+}
+
+.monitoring-card-header p,
+.monitoring-card-channels {
+    color: #6b756e;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.monitoring-card-header p {
+    margin: 0;
+}
+
+.monitoring-status {
+    padding: 5px 9px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.monitoring-status.is-active {
+    background: #e0f2e5;
+    color: #21623a;
+}
+
+.monitoring-status.is-inactive {
+    background: #edf0ed;
+    color: #59645c;
+}
+
+.monitoring-card-keywords {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+.monitoring-keyword-tag {
+    padding: 6px 9px;
+    border-radius: 6px;
+    background: #edf3ee;
+    color: #315641;
+    font-size: 12px;
+}
+
+.monitoring-card-channels {
+    margin: 16px 0;
+}
+
+.monitoring-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 14px;
+    border-top: 1px solid #edf0ed;
+}
+
+@media (max-width: 650px) {
+    .monitoring-page {
+        padding: 20px;
+    }
+
+    .monitoring-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .monitoring-add-button {
+        white-space: normal;
+    }
+
+    .monitoring-form {
+        padding: 18px;
+    }
+
+    .monitoring-keyword-fields {
+        grid-template-columns: 1fr;
+    }
+
+    .monitoring-form-actions {
+        flex-direction: column-reverse;
+    }
+
+    .monitoring-form-actions button {
+        width: 100%;
+    }
+}
+
+/* Częstotliwość powiadomień */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.form-group label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #3f352b;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid #d6c8b8;
+  border-radius: 8px;
+  background-color: #fffdf9;
+  color: #3f352b;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.form-group select:hover {
+  border-color: #a77b50;
+}
+
+.form-group select:focus {
+  outline: none;
+  border-color: #8b6846;
+  box-shadow: 0 0 0 3px rgba(139, 104, 70, 0.15);
+}
+
+.form-group small {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #786e62;
+}

@@ -11,8 +11,8 @@ public class DatabaseInitializer
     public DatabaseInitializer(IConfiguration configuration)
     {
         _connectionString =
-            configuration.GetConnectionString("HistoryDatabase")
-            ?? "Data Source=history.db";
+            configuration.GetConnectionString("DockerManagerDatabase")
+            ?? "Data Source=dockermanager.db";
     }
 
     public async Task InitializeAsync()
@@ -30,6 +30,19 @@ public class DatabaseInitializer
                 ContainersJson TEXT NOT NULL DEFAULT '[]',
                 LogsText TEXT NOT NULL DEFAULT '',
                 Filters TEXT NULL DEFAULT '[]'
+            );
+
+            CREATE TABLE IF NOT EXISTS Monitorings
+            (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                Name TEXT NOT NULL,
+                ContainerId TEXT NOT NULL,
+                ContainerName TEXT NOT NULL,
+                KeywordsJson TEXT NOT NULL DEFAULT '[]',
+                NotificationsJson TEXT NOT NULL DEFAULT '[]',
+                AlertInterval INTEGER NOT NULL DEFAULT 12,
+                IsEnabled INTEGER NOT NULL DEFAULT 1,
+                CreatedAt TEXT NOT NULL
             );
             """;
 

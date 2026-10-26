@@ -186,8 +186,8 @@ app.MapPost("/api/containers/logs", async (
     try
     {
         var connectionString =
-            app.Configuration.GetConnectionString("HistoryDatabase")
-            ?? "Data Source=history.db";
+            app.Configuration.GetConnectionString("DockerManagerDatabase")
+            ?? "Data Source=dockermanager.db";
 
         var selectedContainers = request.ContainerIds
             .Select(id =>
@@ -236,8 +236,8 @@ app.MapGet("/api/history", async (
     try
     {
         var connectionString =
-            configuration.GetConnectionString("HistoryDatabase")
-            ?? "Data Source=history.db";
+            configuration.GetConnectionString("DockerManagerDatabase")
+            ?? "Data Source=dockermanager.db";
 
         await using var connection =
             new SqliteConnection(connectionString);
@@ -262,8 +262,97 @@ app.MapGet("/api/history", async (
     }
 });
 
+app.MapGet("/api/monitoring", async (
+    IConfiguration configuration,
+    ILogger<Program> logger) =>
+{
+    try
+    {
+        var connectionString =
+            configuration.GetConnectionString("DockerManagerDatabase")
+            ?? "Data Source=dockermanager.db";
+
+        await using var connection =
+            new SqliteConnection(connectionString);
+
+        const string sql = """
+            SELECT Id, Name, ContainerId, ContainerName, KeywordsJson,
+            NotificationsJson, AlertInterval, IsEnabled, CreatedAt
+            FROM Monitorings
+            ORDER BY CreatedAt DESC, Id DESC;
+            """;
+
+        var monitoring = await connection.QueryAsync<Monitoring>(sql);
+        return Results.Ok(monitoring);
+
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Nie udało się pobrać konfiguracji monitoringów.");
+
+        return Results.Problem(
+            title: "Nie udało się pobrać konfiguracji monitoringów.",
+            statusCode: 500);
+    }
+});
+
+app.MapPost("/api/monitoring", async (
+    CreateMonitoringRequest request,
+    IConfiguration configuration,
+    ILogger<Program> logger) =>
+{
+    try
+    {
+        var connectionString =
+            configuration.GetConnectionString("DockerManagerDatabase")
+            ?? "Data Source=dockermanager.db";
+
+        await using var connection =
+            new SqliteConnection(connectionString);
+
+        const string sql = """
+            INSERT INTO Monitorings
+                (Name, ContainerId, ContainerName, KeywordsJson, NotificationsJson, AlertInterval, IsEnabled, CreatedAt)
+            VALUES
+                (@Name, @ContainerId, @ContainerName, @KeywordsJson, @NotificationsJson, @AlertInterval, @IsEnabled, @CreatedAt);
+            """;
+
+        await connection.ExecuteAsync(sql, new
+        {
+            Name = request.Name,
+            ContainerId = request.ContainerId,
+            ContainerName = request.ContainerName,
+            KeywordsJson = request.KeywordsJson,
+            NotificationsJson = request.NotificationsJson,
+            AlertInterval = request.AlertInterval,
+            IsEnabled = request.IsEnabled,
+            CreatedAt = DateTime.Now,
+        });
+
+        return Results.Created("/api/monitoring", null);
+
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "Nie udało się zapisać konfiguracji monitoringu.");
+
+        return Results.Problem(
+            title: "Nie udało się zapisać konfiguracji monitoringu.",
+            statusCode: 500);
+    }
+});
+
 
 app.Run();
 
 record GetLogsRequest(List<string> ContainerIds);
+record CreateMonitoringRequest(
+    string Name,
+    string ContainerId,
+    string ContainerName,
+    string KeywordsJson,
+    string NotificationsJson,
+    int AlertInterval,
+    bool IsEnabled
+);
 
