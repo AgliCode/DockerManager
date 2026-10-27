@@ -8,7 +8,24 @@ const notificationOptions = [
     { id: "teams", label: "Microsoft Teams" },
     { id: "desktop", label: "Powiadomienia na komputerze" },
 ];
+const parseJsonArray = (value) => {
+    if (Array.isArray(value)) {
+        return value;
+    }
 
+    try {
+        const parsed = JSON.parse(value || "[]");
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const normalizeMonitoring = (item) => ({
+    ...item,
+    keywordsJson: parseJsonArray(item.keywordsJson),
+    notificationsJson: parseJsonArray(item.notificationsJson),
+});
 function Monitoring() {
     //Pobieranie kontenerów
     const [containers, setContainers] = useState([]);
@@ -90,7 +107,9 @@ function Monitoring() {
                 }
 
                 const data = await response.json()
-                setMonitorings(data)
+                setMonitorings(
+                    data.map(normalizeMonitoring)
+                );
             } catch (error) {
                 console.error('Błąd pobierania konifguracji monitoringów:', error)
             } finally {
@@ -142,8 +161,7 @@ function Monitoring() {
     };
 
     const saveMonitoring = async (event) => {
-            event.preventDefault();
-
+        event.preventDefault();
             const validKeywords = keywords
                 .map((item) => ({
                     ...item,
@@ -187,6 +205,9 @@ function Monitoring() {
                 (item) => item.id === containerId
             );
 
+            console.log("Wybrany identyfikator:", containerId);
+            console.log("Znaleziony kontener:", container);
+
             if (!container) {
                 alert("Nie znaleziono wybranego kontenera.");
                 return;
@@ -195,7 +216,9 @@ function Monitoring() {
             const newMonitoring = {
                 name: name.trim(),
                 containerId,
-                containerName: container.name,
+                containerName: container.names
+                            .map((name) => name.replaceAll("/", ""))
+                            .join(", "),
                 keywordsJson: JSON.stringify(validKeywords),
                 notificationsJson: JSON.stringify(notifications),
                 alertInterval: Number(alertInterval),
@@ -213,24 +236,12 @@ function Monitoring() {
                         body: JSON.stringify(newMonitoring),
                     }
                 );
-
+                const responseText = await response.text();
                 if (!response.ok) {
                     throw new Error(
-                        "Nie udało się zapisać konfiguracji monitoringu."
+                        `Błąd zapisu (${response.status}): ${responseText}`
                     );
                 }
-
-                const savedMonitoring = {
-                    ...newMonitoring,
-                    Id: null,
-                    Name: newMonitoring.name,
-                    ContainerId: newMonitoring.containerId,
-                    ContainerName: newMonitoring.containerName,
-                    KeywordsJson: newMonitoring.keywordsJson,
-                    NotificationsJson: newMonitoring.notificationsJson,
-                    AlertInterval: newMonitoring.alertInterval,
-                    IsEnabled: newMonitoring.isEnabled,
-                };
 
                 // Pobierz zapisane dane, aby otrzymać prawdziwe Id z bazy.
                 const refreshResponse = await fetch(
@@ -244,7 +255,9 @@ function Monitoring() {
                 }
 
                 const data = await refreshResponse.json();
-                setMonitorings(data);
+                setMonitorings(
+                    data.map(normalizeMonitoring)
+                );
 
                 resetForm();
             } catch (error) {
@@ -298,7 +311,7 @@ function Monitoring() {
                             type="text"
                             placeholder="Np. Błędy aplikacji"
                             value={name}
-                            onChange={(event) => setName(event.target.value)}
+                            onChange={(e) => setName(e.target.value)}
                             required
                         />
                     </div>
@@ -310,8 +323,8 @@ function Monitoring() {
                         <select
                             id="monitoring-container"
                             value={containerId}
-                            onChange={(event) =>
-                                setContainerId(event.target.value)
+                            onChange={(e) =>
+                                setContainerId(e.target.value)
                             }
                             required
                         >
@@ -483,28 +496,28 @@ function Monitoring() {
                         {monitorings.map((item) => (
                             <article
                                 className="monitoring-card"
-                                key={item.Id}
+                                key={item.id}
                             >
                                 <div className="monitoring-card-header">
                                     <div>
-                                        <h3>{item.Name}</h3>
+                                        <h3>{item.name}</h3>
                                         <p>
-                                            Kontener: {item.ContainerName}
+                                            Kontener: {item.containerName}
                                         </p>
                                     </div>
                                     <span
                                         className={`monitoring-status ${
-                                            item.IsEnabled
+                                            item.isEnabled
                                                 ? "is-active"
                                                 : "is-inactive"
                                         }`}
                                     >
-                                        {item.IsEnabled ? "Aktywny" : "Wyłączony"}
+                                        {item.isEnabled ? "Aktywny" : "Wyłączony"}
                                     </span>
                                 </div>
 
                                 <div className="monitoring-card-keywords">
-                                    {item.KeywordsJson.map((keyword) => (
+                                    {item.keywordsJson.map((keyword) => (
                                         <span
                                             className="monitoring-keyword-tag"
                                             key={keyword.id}
@@ -517,7 +530,7 @@ function Monitoring() {
 
                                 <p className="monitoring-card-channels">
                                     Powiadomienia:{" "}
-                                    {item.NotificationsJson
+                                    {item.notificationsJson
                                         .map(
                                             (id) =>
                                                 notificationOptions.find(
@@ -536,7 +549,7 @@ function Monitoring() {
                                             toggleMonitoring(item.id)
                                         }
                                     >
-                                        {item.IsEnabled
+                                        {item.isEnabled
                                             ? "Wyłącz monitoring"
                                             : "Włącz monitoring"}
                                     </button>
@@ -544,7 +557,7 @@ function Monitoring() {
                                         type="button"
                                         className="monitoring-remove-button"
                                         onClick={() =>
-                                            deleteMonitoring(item.Id)
+                                            deleteMonitoring(item.id)
                                         }
                                     >
                                         Usuń

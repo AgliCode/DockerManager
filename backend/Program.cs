@@ -342,7 +342,7 @@ app.MapPost("/api/monitoring", async (
     }
 });
 
-
+Console.WriteLine("DockerManager API uruchamia się...");
 app.Run();
 
 record GetLogsRequest(List<string> ContainerIds);
