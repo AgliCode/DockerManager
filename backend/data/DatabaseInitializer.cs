@@ -44,6 +44,22 @@ public class DatabaseInitializer
                 IsEnabled INTEGER NOT NULL DEFAULT 1,
                 CreatedAt TEXT NOT NULL
             );
+
+            CREATE TABLE IF NOT EXISTS MonitoringKeywordMatches
+            (
+                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                MonitoringId INTEGER NOT NULL,
+                Keyword TEXT NOT NULL COLLATE NOCASE,
+                MatchedAt TEXT NOT NULL,
+                LogLine TEXT NOT NULL,
+
+                FOREIGN KEY (MonitoringId, Keyword)
+                    REFERENCES MonitoringKeywordStates(MonitoringId, Keyword)
+                    ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS IX_MonitoringKeywordMatches_MonitoringKeyword
+            ON MonitoringKeywordMatches(MonitoringId, Keyword);
             """;
 
         await connection.ExecuteAsync(sql);

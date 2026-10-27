@@ -10,6 +10,7 @@ using backend.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSingleton<DatabaseInitializer>();
+builder.Services.AddHostedService<LogMonitoringService>();
 
 // Połączenie react - backend
 builder.Services.AddCors(options =>
